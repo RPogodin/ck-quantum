@@ -302,8 +302,9 @@ if (c0 == 1) z q[2];
 4) https://quantum-ods.github.io/qmlcourse/book/index.html
 5) https://habr.com/ru/articles/338202/
 6) https://vas3k.blog/blog/quantum_computing/
+
    . . . 
-А также огромное множество других статей на Хабре, видеороликов на YouTube и множество других различных сайтов и проектов на GitHub.
+и огромное множество других статей на Хабре, видеороликов на YouTube и множество других различных сайтов и проектов на GitHub.
 
 А также песочницы, симуляторы и библиотеки, с помощью которых можно протестировать работу разных алгоритмов:
 1) https://www.quantumplayground.net/#/home
