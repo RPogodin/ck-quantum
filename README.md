@@ -386,6 +386,569 @@ if (c0 == 1) z q[2];
 
 Декогеренция — это разрушение состояния суперпозиции кубитов, если говорить простыми словами. Оно может быть вызвано разными факторами, начиная от ошибок в аппаратной реализации и заканчивая взаимодействием с окружающей средой (квантовые системы очень чувствительны к внешним возмущениям, таким как электромагнитное излучение, тепловые флуктуации и прочие виды шумов). 
 
+## 4. Квантовое преобразование Фурье.
+### Введение
+Преобразование Фурье встречается во многих областях: в классических вычислениях, в областях от обработки сигналов до сжатия данных и теории сложности. Квантовое преобразование Фурье (QFT) — это квантовая реализация дискретного преобразования Фурье по амплитудам волновой функции. Оно является частью многих квантовых алгоритмов, в частности, факторизационного алгоритма Шора и квантовой оценки фазы.
+
+Дискретное преобразование Фурье действует на вектор (x0, x1, …, xN−1) и отображает его в вектор (y0, y1, …, yN −1) по формуле
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/8a3c41c4-fd04-49db-b59a-9c6700e8bae2"/>
+</p>
+
+где
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/81e5c40d-3165-4763-8988-ce8a49952e87"/>
+</p>
+
+Аналогично квантовое преобразование Фурье действует на квантовое состояние
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a968a19c-3451-405f-bf89-ef10b03e16e8"/>
+</p>
+
+и отображает его в квантовое состояние
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/68b5d0c0-f8df-48b7-8c07-068ed9ce72a8"/>
+</p>
+
+по формуле
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/cc958ef3-9c51-4089-a945-7be64641a44d"/>
+</p>
+
+Обратите внимание, что это преобразование затронуло только амплитуды состояния.
+
+Это также можно выразить в виде отображения:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/70f200bd-6575-4b53-8c72-2a79901e7c18"/>
+</p>
+
+или унитарной матрицы
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/77160e12-4e0d-4fb7-aaf4-8483779b3646"/>
+</p>
+
+### Интутивное понимание преобразования Фурье
+Квантовое преобразование Фурье (QFT) делает преобразования между двумя базисами, вычислительным (Z) базисом и базисом Фурье. H-gate — это однокубитный QFT, и он преобразует состояние Z-базиса |0⟩ и 1⟩ в состояния X-базиса |+⟩ и |−⟩. Точно так же все многокубитные состояния в вычислительном базисе имеют соответствующие состояния в базисе Фурье. QFT — это просто функция, которая преобразует один базис в другой.
+
+### Подсчет в базисе Фурье
+
+При обычных вычислениях мы храним числа в двоичном виде, используя состояния |0⟩ и |1⟩:
+
+![1_ZiReRgblkLfvI5LN53wMWA](https://github.com/user-attachments/assets/cf4beb9c-d751-4089-8866-510dedd651ec)
+
+Обратите внимание на частоту, с которой изменяются различные кубиты; самый левый кубит переворачивается с каждым приращением числа, следующий — с каждыми 2 приращениями, третий — с каждыми 4 приращениями и т. д. 
+В базисе Фурье мы храним числа, используя различные вращения вокруг оси Z:
+
+![1_YlFo-6jH6Sm1HJkmWY73mA](https://github.com/user-attachments/assets/ede26520-c15f-4f6b-b37a-7a75b2fe753b)
+
+Число, которое мы хотим сохранить, определяет угол, на который каждый кубит поворачивается вокруг оси Z. В состоянии |0~⟩ все кубиты находятся в состоянии |+⟩. Как видно из примера выше, чтобы закодировать состояние |5~⟩ на 4 кубитах, мы повернули самый левый кубит на 5/16 полных оборотов (радиан). Следующий кубит поворачивается на два угла (10/16×2 π радиан, или 10/16 полных оборотов), затем этот угол удваивается для кубита после этого и так далее.
+
+Опять же, обратите внимание на частоту, с которой меняется каждый кубит. Самый левый кубит (кубит 0) в этом случае имеет самую низкую частоту, а самый правый — самую высокую.
+
+###  Пример 1: 1-кубитный QFT
+
+Рассмотрим, как оператор QFT, определенный выше, действует на одно кубитное состояние |ψ⟩ = α|0⟩ + β|1⟩. В этом случае x0 = α, x1 = β и N = 2. Тогда
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/15a39e7f-7712-4b26-a923-0ba373b266d8"/>
+</p>
+
+таким образом, конечный результат — это состояние
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/6a6a6401-f656-436d-b884-c4f23137b72b"/>
+</p>
+
+Эта операция как раз является результатом применения оператора Адамара (H) к кубиту:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/14ce7f60-3ac2-43d5-996c-5aee753575db"/>
+</p>
+
+Если мы применим оператор H к состоянию |ψ⟩ = α|0⟩ + β|1⟩, то получим новое состояние:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/825bda86-07bf-4ec7-abbc-ffbb96c1b55c"/>
+</p>
+
+Обратите внимание, как вентиль Адамара выполняет дискретное преобразование Фурье для N = 2 над амплитудами состояния.
+
+### Квантовое преобразование Фурье
+Так как же выглядит квантовое преобразование Фурье для больших N?
+
+Рассмотрим формальное определение, оно довольно сложно и не обязательно для дальнейшего понимания алгоритма. Давайте выведем преобразование для N = 2^n , где QFT действует на состояние |x⟩ = |x1, …, xn⟩, где x1 — самый старший бит.
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/7c101038-ca6a-418a-ac8a-99e5c6585550"/>
+</p>
+
+Это математическое описание анимации, которую мы видели ранее:
+
+![1_YlFo-6jH6Sm1HJkmWY73mA](https://github.com/user-attachments/assets/fea27b78-d9ad-428a-9c89-3a8945a200a1)
+
+### Квантовая схема QFT
+Схема, реализующая QFT, использует два вентиля. Первый из них — это однокубитный вентиль Адамара H, который вы уже знаете. Из примера 1 выше вы уже видели, что действие H на однокубитное состояние |xk⟩ равно
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/118a7abc-92e7-4039-8f9d-170b2c4b1a91"/>
+</p>
+
+Вторым является двухкубитное управляемое вращение CROT, матрица которого задаеться как
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/128b042d-0a32-4d2b-9376-b4cb8260e4a7"/>
+</p>
+
+где
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/49566da6-d124-476d-afa5-2d498489ff1a"/>
+</p>
+
+Действие CROT на двухкубитное состояние |xl xj⟩, где первый кубит является управляющим, а второй — целевым, задается выражением
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/05443dc7-8365-4599-a62c-c30e5d2afa07"/>
+</p>
+
+Ниже показана схема, реализующая n-кубитный QFT с учетом этих двух вентилей.
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/9c875baf-1418-46c4-82a2-5902df7501d7"/>
+</p>
+
+Схема работает следующим образом. Мы начинаем с n-кубитного входного состояния |x1, x2, …, xn⟩.
+
+1. После первого вентиля Адамара на кубите 1 состояние преобразуется из входного состояния в
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/496d4d5d-a133-4648-acc9-22290afe5ede"/>
+</p>
+
+2. После вентиля UROT2 на кубите 1, контролируемом кубитом 2, состояние преобразуется в
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/5cedbb78-7044-41da-970e-8940f472f5e0"/>
+</p>
+
+3. После применения последнего вентиля UROTn к кубиту 1, контролируемому кубитом n, состояние становится
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/d711f5ac-603a-4209-94d4-31a2058ec035"/>
+</p>
+
+4. Отмечая, что
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/ce75f9ee-31f1-4ace-bb24-41b90a039e4f"/>
+</p>
+
+5. Мы можем записать вышеуказанное состояние как
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a5d940ff-8497-49a9-a110-89d557bf6111"/>
+</p>
+
+6. После применения аналогичной последовательности вентилей для кубитов 2…n мы находим конечное состояние:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/13327fa8-126a-4806-98a2-217597fd7a73"/>
+</p>
+
+что в точности соответствует QFT входного состояния, полученной выше, с той оговоркой, что в выходном состоянии порядок кубитов обратный.
+
+### Пример 2: 3-кубитный QFT
+
+Шаги создания схемы для |y3 y2 y1⟩ = QFT8|x3 x2 x1⟩ будут следующими:
+
+1. Применить вентиль Адамара к |x1⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/dd652ea9-d690-4e28-a01d-8e353291d468"/>
+</p>
+
+2. Применить вентиль UROT2 к |x1⟩ в зависимости от |x2⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/3fee0237-4741-4b01-b3a6-04b663d28d43"/>
+</p>
+
+3. Применить вентиль UROT3 к |x1⟩ в зависимости от |x3⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/2a328bf6-7095-4743-b194-6febbd3bb77b"/>
+</p>
+
+4. Применить вентиль Адамара к |x2⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/c21749dc-fbc9-47f0-b2ac-e5259964d314"/>
+</p>
+
+5. Применить вентиль UROT2 к |x2⟩ в зависимости от |x3⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/f1c22de9-84b6-457c-bf9d-2debb5038825"/>
+</p>
+
+6. Применить вентиль Адамара к |x3⟩
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/4d033716-eded-40ef-a571-a1b99f442f3e"/>
+</p>
+
+Имейте в виду обратный порядок выходного состояния относительно желаемого QFT. Поэтому мы должны поменять местами порядок кубитов (в данном случае поменять местами y1 и y3).
+
+### Некоторые замечания о форме схемы QFT
+Приведенный выше пример демонстрирует очень полезную форму QFT для N = 2^n. Обратите внимание, что только последний кубит зависит от значений всех остальных входных кубитов, а каждый последующий бит все меньше и меньше зависит от входных кубитов. Это становится важным в физических реализациях QFT, где связи ближайших соседей проще достичь, чем связи дальних кубитов.
+
+Кроме того, по мере того, как схема QFT становится больше, все больше времени тратится на выполнение все более незначительных поворотов. Оказывается, мы можем игнорировать повороты ниже определенного порога и все равно получать приличные результаты, это известно как приближенный QFT. Это также важно в физических реализациях, поскольку уменьшение количества операций может значительно снизить декогеренцию и потенциальные ошибки вентиля.
+
+### Реализация алгоритма в Qiskit
+
+Проще построить схему, реализующую QFT с перевернутыми кубитами, а затем поменять их местами; мы начнем с создания функции, которая правильно вращает наши кубиты:
+
+```
+def qft_rotations(circuit, n):
+    if n == 0: # Exit function if circuit is empty
+        return circuit
+    n -= 1 # Indexes start from 0
+    circuit.h(n) # Apply the H-gate to the most significant qubit
+    for qubit in range(n):
+        # For each less significant qubit, we need to do a
+        # smaller-angled controlled rotation: 
+        circuit.cp(pi/2**(n-qubit), qubit, n)
+```
+
+Давайте посмотрим, как это выглядит:
+
+```
+qc = QuantumCircuit(4)
+qft_rotations(qc,4)
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/f4cf4c99-5baf-478c-a3c3-814890360c56"/>
+</p>
+
+Отлично! Это первая часть нашего QFT. Теперь мы правильно повернули самый значимый кубит, нам нужно правильно повернуть второй по значимости кубит. Затем нам нужно разобраться с третьим по значимости и так далее. Но зачем писать еще код?
+
+Когда мы дойдем до конца нашей qft_rotations()функции, мы сможем использовать тот же код, чтобы повторить процесс для следующих n-1 кубитов:
+
+```
+def qft_rotations(circuit, n):
+    """Performs qft on the first n qubits in circuit (without swaps)"""
+    if n == 0:
+        return circuit
+    n -= 1
+    circuit.h(n)
+    for qubit in range(n):
+        circuit.cp(pi/2**(n-qubit), qubit, n)
+    # At the end of our function, we call the same function again on
+    # the next qubits (we reduced n by one earlier in the function)
+    qft_rotations(circuit, n)
+```
+
+Давайте посмотрим, как это выглядит:
+
+```
+qc = QuantumCircuit(4)
+qft_rotations(qc,4)
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a9f507d1-eb7f-49c6-91e8-8a529701e99c"/>
+</p>
+
+Наконец, нам нужно добавить свопы в конце функции QFT, чтобы соответствовать определению QFT. Мы объединим это в финальную функцию qft():
+
+```
+def  swap_registers ( circuit, n ): 
+    для кубита в  диапазоне (n// 2 ): 
+        circuit.swap(qubit, n-qubit- 1 ) 
+    return circuit 
+
+def  qft ( circuit, n ): 
+    """QFT на первых n кубитах в circuit"""
+     qft_rotations(circuit, n) 
+    swap_registers(circuit, n) 
+    return circuit 
+```
+
+Давайте посмотрим, как это выглядит:
+
+```
+qc = QuantumCircuit(4)
+qft(qc,4)
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/f8dc2702-8ac3-4ced-bb41-5327313d749d"/>
+</p>
+
+Теперь мы хотим продемонстрировать, что эта схема работает правильно. Для этого мы должны сначала закодировать число в вычислительном базисе. Мы знаем, что число 5 в двоичном виде равно 101. Давайте закодируем это в наших кубитах:
+
+```
+# Create the circuit
+qc = QuantumCircuit(3)
+
+# Encode the state 5
+qc.x(0)
+qc.x(2)
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a24f790f-be0e-4a1d-8401-b3b25f48b7c6"/>
+</p>
+
+Давайте проверим состояния кубита с помощью симулятора aer:
+
+```
+sim = Aer.get_backend("aer_simulator")
+qc_init = qc.copy()
+qc_init.save_statevector()
+statevector = sim.run(qc_init).result().get_statevector()
+plot_bloch_multivector(statevector)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/82ec8d67-6dfb-46b5-a7db-ca78af1b362d"/>
+</p>
+
+Наконец, давайте воспользуемся нашей функцией QFT и посмотрим конечное состояние наших кубитов:
+
+```
+qft(qc,3)
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/e458ffe8-2ff9-4f9c-84b2-54dc57ecdd8b"/>
+</p>
+
+```
+qc.save_statevector()
+statevector = sim.run(qc).result().get_statevector()
+plot_bloch_multivector(statevector)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/650d8ea8-322d-4645-8083-62b92d7f2f73"/>
+</p>
+
+Мы видим, что наша функция QFT сработала правильно. Сравнивая состояние |0~⟩=|+++⟩, кубит 0 был повернут на 5/8 полного оборота, кубит 1 на 10/8 полных оборотов (что эквивалентно 1/4 полного оборота), а кубит 2 на 20/8 полных оборотов (что эквивалентно 1/2 полного оборота).
+
+### Запуск QFT на реальном квантовом компьютере
+Если бы мы попытались запустить схему в конце на реальном устройстве, результаты были бы совершенно случайными, поскольку все кубиты находятся в равной суперпозиции |0⟩ и |1⟩. Если мы хотим продемонстрировать и исследовать работу QFT на реальном оборудовании, мы можем вместо этого создать состояние |5~⟩, показанное в конце предыдущего раздела, запустить QFT в обратном порядке и убедиться, что выход — это состояние |5⟩, как и ожидалось.
+
+Во-первых, давайте воспользуемся Qiskit, чтобы легко обратить нашу операцию QFT:
+
+```
+def inverse_qft(circuit, n):
+    """Does the inverse QFT on the first n qubits in circuit"""
+    # First we create a QFT circuit of the correct size:
+    qft_circ = qft(QuantumCircuit(n), n)
+    # Then we take the inverse of this circuit
+    invqft_circ = qft_circ.inverse()
+    # And add it to the first n qubits in our existing circuit
+    circuit.append(invqft_circ, circuit.qubits[:n])
+    return circuit.decompose() # .decompose() allows us to see the individual gates
+```
+
+Теперь давайте переведем наши кубиты в состояние |5~⟩:
+
+```
+nqubits = 3
+number = 5
+qc = QuantumCircuit(nqubits)
+for qubit in range(nqubits):
+    qc.h(qubit)
+qc.p(number*pi/4,0)
+qc.p(number*pi/2,1)
+qc.p(number*pi,2)
+
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/d0451469-d5de-4de3-b6a2-07175d9b9d36"/>
+</p>
+
+И мы видим, что это действительно приводит к состоянию Фурье |5~⟩:
+
+```
+qc_init = qc.copy()
+qc_init.save_statevector()
+sim = Aer.get_backend("aer_simulator")
+statevector = sim.run(qc_init).result().get_statevector()
+plot_bloch_multivector(statevector)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/4c41c0ab-20fc-42ee-9213-03cb45736a67"/>
+</p>
+
+Наконец, применим наш обратный QFT:
+
+```
+qc = inverse_qft(qc, nqubits)
+qc.measure_all()
+qc.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/14757704-30bc-41f4-b8c8-49972b8fd518"/>
+</p>
+
+```
+# Load our saved IBMQ accounts and get the least busy backend device with less than or equal to nqubits
+IBMQ.load_account()
+provider = IBMQ.get_provider(hub='ibm-q')
+backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= nqubits 
+                                       and not x.configuration().simulator 
+                                       and x.status().operational==True))
+print("least busy backend: ", backend)
+```
+
+```
+shots = 2048
+transpiled_qc = transpile(qc, backend, optimization_level=3)
+job = backend.run(transpiled_qc, shots=shots)
+job_monitor(job)
+```
+
+```
+counts = job.result().get_counts()
+plot_histogram(counts)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/ce9b7cbd-376f-4f86-8b14-a868617aa235"/>
+</p>
+
+Мы видим, что наивысшая вероятность исхода — 101.
+
+## 5. Оценка квантовой фазы.
+### Введение
+Оценка квантовой фазы — одна из важнейших подпрограмм в квантовых вычислениях. Она служит центральным строительным блоком для многих квантовых алгоритмов. Цель алгоритма заключается в следующем:
+
+При наличии унитарного оператора U алгоритм оценивает θ в U|ψ⟩= exp(2πιθ)|ψ⟩. Здесь |ψ⟩ — собственный вектор, а exp(2πιθ) — соответствующее собственное значение. Поскольку U унитарен, все его собственные значения имеют норму 1.
+
+### Квантовая схема 
+Ниже показана общая квантовая схема для оценки фазы. Верхний регистр содержит t «подсчитывающих» кубитов, а нижний содержит кубиты в состоянии |ψ⟩:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/080902a9-6b93-444d-8256-9b579e63ee42"/>
+</p>
+
+### Интутивное понимание алгоритма оценки квантовой фазы
+Алгоритм квантовой оценки фазы использует фазовый откат для записи фазы U (в базисе Фурье) в t кубитов в счетном регистре. Затем мы используем обратный QFT для перевода этого из базиса Фурье в вычислительный базис, который мы можем измерить.
+
+Мы помним (из главы QFT), что в базисе Фурье самый верхний кубит совершает один полный оборот при счете между 0 и 2t . Чтобы сосчитать до числа x между 0 и 2t , мы поворачиваем этот кубит на x/2t вокруг оси z. Для следующего кубита мы поворачиваем на 2x/2t , затем на 4x/2t для третьего кубита.
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/e37cb3bb-63f0-41e4-ba3c-5f15904c6848"/>
+</p>
+
+Когда мы используем кубит для управления U-вентилем, кубит будет поворачиваться (из-за отдачи) пропорционально фазе exp(2ιπθ) . Мы можем использовать последовательные CU-вентили, чтобы повторить это вращение соответствующее количество раз, пока не закодируем фазу тета как число между 0 и 2t в базисе Фурье.
+
+Затем мы просто используем QFT†, чтобы преобразовать это в вычислительный базис.
+
+### Математическая основа
+Как упоминалось выше, эта схема оценивает фазу унитарного оператора U. Она оценивает θ в U|ψ⟩= exp(2πιθ), где |ψ⟩ — собственный вектор, а exp(2πιθ) — соответствующее собственное значение. Схема работает в следующих шагах:
+
+1. Счетный регистр:
+|ψ ⟩ находится в одном наборе кубитных регистров. Дополнительный набор из n кубитов образует счетный регистр, в котором мы будем хранить значение 2^nΘ :
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/e6db00bf-cca6-4459-a9a5-52abfb55c280"/>
+</p>
+
+2. Суперпозиция:
+Применим операцию n-битного вентиля Адамара к счетному регистру:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/41f72c37-f62a-458e-903b-070dc0cad067"/>
+</p>
+
+3. Контролируемые унитарные операции:
+Нам нужно ввести управляемый унитарный CU, который применяет унитарный оператор U к целевому регистру, только если его соответствующий управляющий бит равен |1⟩. Поскольку U является унитарным оператором с собственным вектором |ψ⟩ таким, что U|ψ⟩ = exp(2πιθ)|ψ⟩, это означает:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/1521203d-fd91-49d7-97ce-0556b6155f78"/>
+</p>
+
+Применяем все n операций CU^(2j) при 0 ≤ j ≤ n−1 и используем соотношение:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/7ae6c616-a104-4446-825c-498142f32ad7"/>
+</p>
+
+мы получаем
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/5ec18e39-0e34-4d2d-8f9f-8c441a24ecae"/>
+</p>
+
+где k обозначает целочисленное представление n-битных двоичных чисел.
+
+Обратное преобразование Фурье: Обратите внимание, что приведенное выше выражение является точным результатом применения квантового преобразования Фурье, которое мы вывели ранее. Напомним, что QFT отображает n-кубитное входное состояние |x⟩ в выходное как:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/f1ce1b06-db2a-41d9-ae8d-581d4bd1e01c"/>
+</p>
+
+Замена x на 2^nθ в приведенном выше выражении дает в точности выражение, полученное на шаге 2 выше. Поэтому, чтобы восстановить состояние |2^nθ⟩, применим обратное преобразование Фурье к вспомогательному регистру. Сделав это, мы находим
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/586fbd64-b2e9-493e-8ac9-611ace433332"/>
+</p>
+
+4. Измерение:
+Вышеприведенное выражение достигает экстремума вблизи x = 2^nθ . Для случая, когда 2^nθ является целым числом, измерение в вычислительном базисе дает фазу во вспомогательном регистре с высокой вероятностью:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/4e0abea8-3f04-4c3a-862e-2ee649355b4b"/>
+</p>
+
+Для случая, когда 2^nθ не является целым числом, можно показать, что приведенное выше выражение по-прежнему достигает экстремума вблизи x = 2^nθ с вероятностью лучше, чем 4/π^2=40%.
+
+### Пример: Т-вентиль
+
+Давайте возьмем хорошо знакомый нам вентиль T и применим квантовую оценку фазы для оценки его фазы. Вы помните, что T-gate добавляет фазу exp(ιπ/4) к состоянию |1⟩:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/785b792b-b33d-4d6b-8963-b9a61829af0c"/>
+</p>
+
+Так как QPE даст нам θ, где
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/be191e97-f63e-4821-8965-a08ea32b13db"/>
+</p>
+
+Мы ожидаем найти:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/d902d064-4872-4c21-a2ba-83defbd7a72d"/>
+</p>
+
+В этом примере мы будем использовать три кубита и получим точный результат (не оценку!)
+
+Создание схемы
+Давайте сначала подготовим нашу среду:
+
 
 # Часть IV. Заключение.
 
