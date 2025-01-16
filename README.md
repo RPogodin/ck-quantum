@@ -924,9 +924,9 @@ plot_histogram(counts)
 
 Для случая, когда 2^nθ не является целым числом, можно показать, что приведенное выше выражение по-прежнему достигает экстремума вблизи x = 2^nθ с вероятностью лучше, чем 4/π^2=40%.
 
-### Пример: Т-вентиль
+### Пример 1: Т-вентиль
 
-Давайте возьмем хорошо знакомый нам вентиль T и применим квантовую оценку фазы для оценки его фазы. Вы помните, что T-gate добавляет фазу exp(ιπ/4) к состоянию |1⟩:
+Давайте возьмем хорошо знакомый нам вентиль T и применим квантовую оценку фазы для оценки его фазы. Вы помните, что T-вентиль добавляет фазу exp(ιπ/4) к состоянию |1⟩:
 
 <p align="center">
  <img src="https://github.com/user-attachments/assets/785b792b-b33d-4d6b-8963-b9a61829af0c"/>
@@ -949,6 +949,280 @@ plot_histogram(counts)
 Создание схемы
 Давайте сначала подготовим нашу среду:
 
+```
+#initialization
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+
+# importing Qiskit
+from qiskit import IBMQ, Aer, transpile, assemble
+from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
+
+# import basic plot tools and circuits
+from qiskit.visualization import plot_histogram
+from qiskit.circuit.library import QFT
+```
+
+Теперь настроим квантовую схему. Мы будем использовать четыре кубита — кубиты с 0 по 2 как счетные кубиты и кубит 3 как собственное состояние унитарного оператора (T).
+
+Мы инициализируем |ψ⟩ = |1⟩, применяя X-вентиль:
+
+```
+qpe = QuantumCircuit(4, 3)
+qpe.x(3)
+qpe.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/75a0b50f-93d7-47d7-a840-8d6b6dfcc5dd"/>
+</p>
+
+Далее мы применяем вентили Адамара к счетным кубитам:
+
+```
+for qubit in range(3):
+    qpe.h(qubit)
+qpe.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/8ffdcf83-e56c-4416-8f17-7bad854d0ae6"/>
+</p>
+
+Далее мы выполняем контролируемые унитарные операции.
+
+Мы будем использовать Qiskit PhaseGate для создания операции T. Фазовый вентиль выполняет преобразование
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/102899e1-ee7a-4931-880c-5ef6e5b216be"/>
+</p>
+
+,где λ — это угол, который мы предоставляем. Поскольку мы хотим реализовать T, который выполняет
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a118603d-9641-4229-aaee-f47c096ec519"/>
+</p>
+
+нам нужно установить λ = π/4.
+
+Также помните, что Qiskit упорядочивает свои кубиты в порядке, противоположном схеме в обзоре.
+
+```
+qpe.barrier()
+# Apply inverse QFT
+qpe = qpe.compose(QFT(3, inverse=True), [0,1,2])
+# Measure
+qpe.barrier()
+for n in range(3):
+    qpe.measure(n,n)
+
+qpe.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/33cd42e0-c3ac-433f-91b4-1ce89cc28e85"/>
+</p>
+
+Результаты: 
+
+```
+aer_sim = Aer.get_backend('aer_simulator')
+shots = 2048
+t_qpe = transpile(qpe, aer_sim)
+results = aer_sim.run(t_qpe, shots=shots).result()
+answer = results.get_counts()
+
+plot_histogram(answer)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/9d10c6fa-fa41-40af-8a33-2d08385ce42b"/>
+</p>
+
+Мы видим, что с уверенностью получаем один результат (001), который переводится в десятичную дробь: 1. Теперь нам нужно разделить наш результат на 2^n, чтобы получить θ:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/7f5aa2ab-29c0-4776-8912-fcb6fbd39cd4"/>
+</p>
+
+Это именно тот результат, которого мы ожидали!
+
+### Пример 2: Получение большей точности
+#### Проблема
+Вместо Т вентиля давайте используем вентиль с θ=1/3.
+
+В ячейке ниже мы настраиваем нашу схему так же, как и в предыдущем примере.
+
+Мы снова воспользуемся Qiskit PhaseGate, который делает
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/3c9b6045-9cc7-4b69-8fb9-1b7bfa791020"/>
+</p>
+
+Поскольку мы хотим реализовать
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/ec2373cd-2f09-45cb-a01a-5f98d3513555"/>
+</p>
+
+, нам нужно установить λ = 2π/3 .
+
+```
+# Create and set up circuit
+qpe2 = QuantumCircuit(4, 3)
+
+# Apply H-Gates to counting qubits:
+for qubit in range(3):
+    qpe2.h(qubit)
+
+# Prepare our eigenstate |psi>:
+qpe2.x(3)
+
+# Do the controlled-U operations:
+angle = 2*math.pi/3
+repetitions = 1
+for counting_qubit in range(3):
+    for i in range(repetitions):
+        qpe2.cp(angle, counting_qubit, 3);
+    repetitions *= 2
+
+# Do the inverse QFT:
+qpe2 = qpe2.compose(QFT(3, inverse=True), [0,1,2])
+
+# Measure of course!
+for n in range(3):
+    qpe2.measure(n,n)
+
+qpe2.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/2f58769e-1ab2-4024-b925-d6c77a3714e0"/>
+</p>
+
+```
+aer_sim = Aer.get_backend('aer_simulator')
+shots = 4096
+t_qpe2 = transpile(qpe2, aer_sim)
+results = aer_sim.run(t_qpe2, shots=shots).result()
+answer = results.get_counts()
+
+plot_histogram(answer)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/dc9fe00b-892b-4e5d-92f9-721b6f08845b"/>
+</p>
+
+Мы ожидаем результат θ = 0.33333, и мы видим, что наши наиболее вероятные результаты 010(bin) = 2(dec) и 011(bin) = 3(dec). Эти два результата говорят нам, что θ = 0.25 (смещение на 25%) и θ = 0.375 (смещение на 13%) соответственно. Истинное значение θ лежит между значениями, которые мы можем получить из наших счетных битов, и это дает нам неопределенность и неточность.
+
+#### Решение
+Чтобы получить большую точность, мы просто добавляем больше счетных кубитов. Мы собираемся добавить еще два счетных кубита:
+
+```
+# Create and set up circuit
+qpe3 = QuantumCircuit(6, 5)
+
+# Apply H-Gates to counting qubits:
+for qubit in range(5):
+    qpe3.h(qubit)
+
+# Prepare our eigenstate |psi>:
+qpe3.x(5)
+
+# Do the controlled-U operations:
+angle = 2*math.pi/3
+repetitions = 1
+for counting_qubit in range(5):
+    for i in range(repetitions):
+        qpe3.cp(angle, counting_qubit, 5);
+    repetitions *= 2
+
+# Do the inverse QFT:
+qpe3 = qpe3.compose(QFT(5, inverse=True), range(5))
+
+# Measure of course!
+qpe3.barrier()
+for n in range(5):
+    qpe3.measure(n,n)
+
+qpe3.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/8d9ecb91-8523-451b-8953-96ec4ac181fc"/>
+</p>
+
+```
+aer_sim = Aer.get_backend('aer_simulator')
+shots = 4096
+t_qpe3 = transpile(qpe3, aer_sim)
+results = aer_sim.run(t_qpe3, shots=shots).result()
+answer = results.get_counts()
+
+plot_histogram(answer)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/b1daf1f8-b319-453d-a7ea-ab83801bf568"/>
+</p>
+
+Два наиболее вероятных измерения теперь 01011 (десятичное 11) и 01010 (десятичное 10). Измерение этих результатов скажет нам, что θ составляет:
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/4cda36ce-8e97-44a3-9caf-52b57a93dbe6"/>
+</p>
+
+Эти два результата отличаются от 13 на 3% и 6% соответственно. Гораздо лучшая точность!
+
+### Реальный квантовый компьютер
+Мы можем запустить эту схему на реальном устройстве, давайте вспомним схему:
+
+```
+qpe.draw('mpl')
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/3dae3e04-8425-40c4-a9d3-6d1220dd5980"/>
+</p>
+
+```
+from qiskit import IBMQ
+IBMQ.save_account('ENTER API TOKEN HERE')
+```
+
+```
+from qiskit.providers.ibmq import least_busy
+IBMQ.load_account()
+from qiskit.tools.monitor import job_monitor
+provider = IBMQ.get_provider(hub='ibm-q')
+backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= (n+1) and
+                                   not x.configuration().simulator and x.status().operational==True))
+print("least busy backend: ", backend)
+```
+
+```
+# Run with 2048 shots
+shots = 2048
+t_qpe = transpile(qpe, backend, optimization_level=3)
+job = backend.run(t_qpe, shots=shots)
+job_monitor(job)
+```
+
+```
+# get the results from the computation
+results = job.result()
+answer = results.get_counts(qpe)
+
+plot_histogram(answer)
+```
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/3e43ea07-ff94-4827-94ef-46e44a7dbef4"/>
+</p>
+
+Мы можем увидеть, что наиболее вероятным результатом будет 001, что является результатом, который мы ожидаем от симулятора. В отличие от симулятора, существует вероятность измерения чего-то иного, чем 001, это связано с шумом и ошибками вентиля в квантовом компьютере.
 
 # Часть IV. Заключение.
 
@@ -971,6 +1245,7 @@ plot_histogram(counts)
 4) https://quantum-ods.github.io/qmlcourse/book/index.html
 5) https://habr.com/ru/articles/338202/
 6) https://vas3k.blog/blog/quantum_computing/
+7) https://github.com/MonitSharma/Learn-Quantum-Computing-with-Qiskit
 
    . . . 
 и огромное множество других статей на Хабре, видеороликов на YouTube и множество других различных сайтов и проектов на GitHub.
